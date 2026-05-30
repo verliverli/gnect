@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   MessageCircle, Search, ArrowLeft, Send, ImagePlus, Clock,
-  Check, CheckCheck, Eye, Lock, ChevronDown, Shield,
+  Check, CheckCheck, Eye, EyeOff, Lock, ChevronDown, Shield,
   Ban, Flag, XCircle, Camera, MoreVertical, Reply, Trash2,
   Ghost, Loader2, X, Smile, Maximize2
 } from 'lucide-react'
@@ -207,9 +207,15 @@ function ViewOncePhoto({
     >
       <div className="aspect-[3/4] flex flex-col items-center justify-center gap-2 p-4">
         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-          <Lock className="w-5 h-5 text-primary" />
+          {isMine ? (
+            <EyeOff className="w-5 h-5 text-primary" />
+          ) : (
+            <Lock className="w-5 h-5 text-primary" />
+          )}
         </div>
-        <span className="text-xs text-primary font-medium">Tap to view</span>
+        <span className="text-xs text-primary font-medium">
+          {isMine ? 'View-once sent' : 'Tap to view'}
+        </span>
         <span className="text-[10px] text-muted-foreground/50">View-once photo</span>
       </div>
     </button>
@@ -550,6 +556,7 @@ export function ChatsScreen({ openChatWithUserId, onChatOpened, onUnreadCountCha
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null)
   const [sending, setSending] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [viewOnceMode, setViewOnceMode] = useState(false) // View-once photo toggle
 
   // Typing indicator
   const [otherTyping, setOtherTyping] = useState(false)
@@ -795,7 +802,16 @@ export function ChatsScreen({ openChatWithUserId, onChatOpened, onUnreadCountCha
     setReplyTo(null)
     setOtherTyping(false)
     setSelectedMessage(null)
+    setViewOnceMode(false)
     fetchMessages(chatId)
+    // Load persisted self-destruct timer for this chat
+    fetch(`/api/chat/${chatId}/self-destruct`, { credentials: 'same-origin' })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.ok) setSelfDestructHours(d.data.hours)
+        else setSelfDestructHours(null)
+      })
+      .catch(() => setSelfDestructHours(null))
     // Socket room joining is handled by the activeChatId useEffect above
   }, [])
 
@@ -808,6 +824,8 @@ export function ChatsScreen({ openChatWithUserId, onChatOpened, onUnreadCountCha
     setMessagesCursor(null)
     setReplyTo(null)
     setSelectedMessage(null)
+    setViewOnceMode(false)
+    setSelfDestructHours(null)
     fetchChats(true)
   }, [fetchChats])
 
@@ -976,13 +994,17 @@ export function ChatsScreen({ openChatWithUserId, onChatOpened, onUnreadCountCha
         return
       }
 
-      // Send as message
+      // Send as message — view-once or regular photo based on toggle
+      const isViewOnce = viewOnceMode
+      const mediaType = isViewOnce ? 'view_once_photo' : 'photo'
+
       const res = await fetch(`/api/chat/${activeChatId}/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           media_url: uploadData.data.url,
-          media_type: 'photo',
+          media_type: mediaType,
+          is_view_once: isViewOnce,
           reply_to_id: replyTo?.id || null,
         }),
         credentials: 'same-origin',
@@ -995,8 +1017,8 @@ export function ChatsScreen({ openChatWithUserId, onChatOpened, onUnreadCountCha
           sender_id: currentUser!.id,
           content: null,
           media_url: uploadData.data.url,
-          media_type: 'photo',
-          is_view_once: false,
+          media_type: mediaType,
+          is_view_once: isViewOnce,
           viewed: false,
           reply_to_id: replyTo?.id || null,
           sent_at: data.data.sent_at,
@@ -1004,6 +1026,7 @@ export function ChatsScreen({ openChatWithUserId, onChatOpened, onUnreadCountCha
 
         setMessages((prev) => [...prev, newMsg])
         setReplyTo(null)
+        setViewOnceMode(false) // Reset view-once mode after sending
 
         socketRef.current?.emit('send-message', {
           chatId: activeChatId,
@@ -1651,19 +1674,44 @@ export function ChatsScreen({ openChatWithUserId, onChatOpened, onUnreadCountCha
 
       {/* Message Input — WhatsApp-style: Enter = newline, send button only */}
       <div className="shrink-0 border-t border-border/50 bg-background px-3 py-2 safe-bottom flex items-end gap-2">
-        {/* Photo button */}
-        <button
-          onClick={() => photoInputRef.current?.click()}
-          disabled={uploading}
-          className="h-10 w-10 rounded-full flex items-center justify-center shrink-0 active:bg-secondary transition-colors"
-          aria-label="Send photo"
-        >
-          {uploading ? (
-            <Loader2 className="w-5 h-5 text-primary animate-spin" />
-          ) : (
-            <Camera className="w-5 h-5 text-muted-foreground" />
-          )}
-        </button>
+        {/* View-once toggle + Photo button */}
+        <div className="flex items-center gap-0.5">
+          {/* View-once mode toggle */}
+          <button
+            onClick={() => setViewOnceMode(!viewOnceMode)}
+            className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+              viewOnceMode
+                ? 'bg-primary/20 text-primary'
+                : 'text-muted-foreground/50 hover:text-muted-foreground'
+            }`}
+            aria-label={viewOnceMode ? 'View-once mode on' : 'View-once mode off'}
+          >
+            {viewOnceMode ? (
+              <EyeOff className="w-4 h-4" />
+            ) : (
+              <Eye className="w-4 h-4" />
+            )}
+          </button>
+          {/* Photo button */}
+          <button
+            onClick={() => photoInputRef.current?.click()}
+            disabled={uploading}
+            className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 active:bg-secondary transition-colors ${
+              viewOnceMode ? 'ring-1 ring-primary/30' : ''
+            }`}
+            aria-label={viewOnceMode ? 'Send view-once photo' : 'Send photo'}
+          >
+            {uploading ? (
+              <Loader2 className="w-5 h-5 text-primary animate-spin" />
+            ) : (
+              <Camera className={`w-5 h-5 ${viewOnceMode ? 'text-primary' : 'text-muted-foreground'}`} />
+            )}
+          </button>
+        </div>
+        {/* View-once mode indicator */}
+        {viewOnceMode && (
+          <span className="text-[10px] text-primary font-medium shrink-0">View once</span>
+        )}
 
         {/* Text input — auto-resize textarea, Enter = newline */}
         <div className="flex-1 min-w-0">

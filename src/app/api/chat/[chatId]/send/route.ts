@@ -23,7 +23,7 @@ export async function POST(
     // Verify user is a participant of this chat
     const chat = await db.chat.findUnique({
       where: { id: chatId },
-      select: { id: true, user1_id: true, user2_id: true },
+      select: { id: true, user1_id: true, user2_id: true, self_destruct_hours: true },
     })
 
     if (!chat) {
@@ -110,9 +110,13 @@ export async function POST(
     // Rules: Text = 7 days hard limit. Photos unopened = 30 min. Photos opened = 24h.
     // View-once = 30 min unopened, then 24h after opening.
     // ALL messages have 7-day hard_delete_at as ultimate limit.
+    // BUT if chat has self_destruct_hours set, use that for hard_delete_at instead.
     const now = new Date()
     let auto_delete_at: Date | null = null
-    const hard_delete_at = new Date(now.getTime() + MEDIA_LIMITS.HARD_DELETE_DAYS * 24 * 60 * 60 * 1000)
+
+    // If chat has a self-destruct timer, use it for hard_delete_at; otherwise default 7 days
+    const hardDeleteHours = chat.self_destruct_hours ?? MEDIA_LIMITS.HARD_DELETE_DAYS * 24
+    const hard_delete_at = new Date(now.getTime() + hardDeleteHours * 60 * 60 * 1000)
 
     if (is_view_once && media_type === "view_once_photo") {
       // View-once photos: 30 min unopened (will be updated to 24h when viewed)
