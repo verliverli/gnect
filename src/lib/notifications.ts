@@ -6,12 +6,23 @@
 import { db } from './db'
 import webpush from 'web-push'
 
-// Configure web-push with VAPID
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT || 'mailto:gnect@app.com',
-  process.env.VAPID_PUBLIC_KEY || '',
-  process.env.VAPID_PRIVATE_KEY || ''
-)
+// Configure web-push with VAPID — only if keys are available
+// If keys are missing, push notifications are skipped gracefully
+let vapidConfigured = false
+try {
+  const publicKey = process.env.VAPID_PUBLIC_KEY
+  const privateKey = process.env.VAPID_PRIVATE_KEY
+  if (publicKey && privateKey) {
+    webpush.setVapidDetails(
+      process.env.VAPID_SUBJECT || 'mailto:gnect@app.com',
+      publicKey,
+      privateKey
+    )
+    vapidConfigured = true
+  }
+} catch {
+  // VAPID not configured — push notifications will be skipped
+}
 
 // Chat service URL for Socket.io emission (server-to-server)
 // Production: HuggingFace Space (cloud relay). Dev: local chat-service on port 3003
@@ -130,10 +141,15 @@ export async function createNotification({ userId, type, title, body, data, isBr
 
 // Send a push notification to all of a user's devices
 export async function sendPushNotification(userId: string, payload: { title: string; body: string; data: Record<string, any> }) {
+  // Skip push notifications if VAPID keys are not configured
+  if (!vapidConfigured) return
+
   try {
     const subscriptions = await db.pushSubscription.findMany({
       where: { user_id: userId },
     })
+
+    if (subscriptions.length === 0) return
 
     const pushPromises = subscriptions.map(async (sub) => {
       try {
