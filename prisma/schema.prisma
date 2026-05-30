@@ -1,0 +1,374 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// GNECT DATABASE SCHEMA
+// Privacy-first hookup web app for Tanzania
+// ============================================
+
+model User {
+  id              String    @id @default(cuid())
+  nickname        String    @unique
+  password_hash   String
+  age             Int
+  region          String
+  bio             String    @default("")
+  height          Int?
+  weight          Int?
+  body_type       String    @default("Average")
+  role            String    @default("Versatile")
+  role_last_changed DateTime?
+  availability    String    @default("Not Now")
+  discretion_mode Boolean   @default(true)
+  secret_phrase   String?
+  not_today       Boolean   @default(false)
+  not_today_expires DateTime?
+  is_premium      Boolean   @default(false)
+  is_premium_free Boolean   @default(true)
+  is_early_adopter Boolean  @default(false)
+  is_admin        Boolean   @default(false)
+  is_banned       Boolean   @default(false)
+  banned_reason   String?
+  is_online       Boolean   @default(false)
+  last_seen       DateTime  @default(now())
+  chats_this_week Int       @default(0)
+  chats_week_reset DateTime @default(now())
+  not_today_count Int       @default(0)
+  not_today_reset DateTime  @default(now())
+  street          String?
+  cucumber_size   Int?
+  show_cucumber   Boolean   @default(false)
+  status_text       String?
+  status_gradient   String?
+  status_expires_at DateTime?
+  status_views      Int       @default(0)
+  notification_settings String    @default("{\"messages\":true,\"community\":false,\"profileViews\":false,\"profileSaves\":false,\"quietHoursEnabled\":false,\"quietHoursStart\":\"23:00\",\"quietHoursEnd\":\"07:00\"}")
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+
+  photos          ProfilePhoto[]
+  into_tags       IntoTag[]
+  sent_messages   Message[]       @relation("SentMessages")
+  chat_participant1 Chat[]        @relation("User1Chats")
+  chat_participant2 Chat[]        @relation("User2Chats")
+  saved_profiles  SavedProfile[]  @relation("Saver")
+  saved_by        SavedProfile[]  @relation("Saved")
+  reports_made    Report[]        @relation("Reporter")
+  reports_received Report[]       @relation("Reported")
+  blocks_made     Block[]         @relation("Blocker")
+  blocks_received Block[]         @relation("Blocked")
+  rate_limits     RateLimit[]
+  community_posts CommunityPost[]
+  community_comments PostComment[]
+  community_upvotes PostUpvote[]
+  community_post_reports PostReport[]
+  push_subscriptions   PushSubscription[]
+  notifications        Notification[]
+  broadcast_acks       BroadcastAck[]
+
+  @@index([nickname])
+  @@index([region])
+  @@index([role])
+  @@index([availability])
+  @@index([is_online])
+  @@index([street])
+}
+
+model ProfilePhoto {
+  id            String   @id @default(cuid())
+  user_id       String
+  catbox_url    String
+  is_locked     Boolean  @default(false)
+  is_face_pic   Boolean  @default(true)
+  upload_order  Int      @default(1)
+  uploaded_at   DateTime @default(now())
+
+  user          User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+}
+
+model IntoTag {
+  id       String @id @default(cuid())
+  user_id  String
+  tag      String
+
+  user     User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, tag])
+  @@index([user_id])
+  @@index([tag])
+}
+
+model Chat {
+  id             String   @id @default(cuid())
+  user1_id       String
+  user2_id       String
+  created_at     DateTime @default(now())
+  last_message_at DateTime @default(now())
+
+  user1          User     @relation("User1Chats", fields: [user1_id], references: [id], onDelete: Cascade)
+  user2          User     @relation("User2Chats", fields: [user2_id], references: [id], onDelete: Cascade)
+  messages       Message[]
+
+  @@unique([user1_id, user2_id])
+  @@index([user1_id])
+  @@index([user2_id])
+  @@index([last_message_at])
+}
+
+model Message {
+  id              String    @id @default(cuid())
+  chat_id         String
+  sender_id       String
+  content         String?
+  media_url       String?
+  media_type      String?   // "photo" | "view_once_photo" | null
+  is_view_once    Boolean   @default(false)
+  viewed          Boolean   @default(false)
+  viewed_at       DateTime?
+  reply_to_id     String?
+  is_ghost_deleted Boolean  @default(false)
+  is_unsent       Boolean   @default(false)
+  sent_at         DateTime  @default(now())
+  auto_delete_at  DateTime?
+  hard_delete_at  DateTime?
+
+  chat            Chat      @relation(fields: [chat_id], references: [id], onDelete: Cascade)
+  sender          User      @relation("SentMessages", fields: [sender_id], references: [id], onDelete: Cascade)
+
+  @@index([chat_id])
+  @@index([sender_id])
+  @@index([auto_delete_at])
+  @@index([hard_delete_at])
+}
+
+model SavedProfile {
+  id             String   @id @default(cuid())
+  user_id        String
+  saved_user_id  String
+  created_at     DateTime @default(now())
+
+  saver          User     @relation("Saver", fields: [user_id], references: [id], onDelete: Cascade)
+  saved          User     @relation("Saved", fields: [saved_user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, saved_user_id])
+  @@index([user_id])
+}
+
+model Report {
+  id              String   @id @default(cuid())
+  reporter_id     String
+  reported_user_id String
+  reason          String   // "Fake" | "Spam" | "Underage" | "Harassment"
+  description     String?
+  created_at      DateTime @default(now())
+
+  reporter        User     @relation("Reporter", fields: [reporter_id], references: [id], onDelete: Cascade)
+  reported        User     @relation("Reported", fields: [reported_user_id], references: [id], onDelete: Cascade)
+
+  @@index([reported_user_id])
+  @@index([reporter_id])
+}
+
+model IPRegistration {
+  id             String   @id @default(cuid())
+  ip_address     String
+  registered_at  DateTime @default(now())
+
+  @@index([ip_address])
+  @@index([registered_at])
+}
+
+model RateLimit {
+  id               String   @id @default(cuid())
+  user_id          String
+  action_type      String
+  action_count     Int      @default(0)
+  hour_window_start DateTime @default(now())
+
+  user             User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, action_type])
+  @@index([user_id])
+}
+
+model Block {
+  id             String   @id @default(cuid())
+  blocker_id     String
+  blocked_id     String
+  created_at     DateTime @default(now())
+
+  blocker        User     @relation("Blocker", fields: [blocker_id], references: [id], onDelete: Cascade)
+  blocked        User     @relation("Blocked", fields: [blocked_id], references: [id], onDelete: Cascade)
+
+  @@unique([blocker_id, blocked_id])
+  @@index([blocker_id])
+  @@index([blocked_id])
+}
+
+model AppSettings {
+  id              String   @id @default("app_settings")
+  is_premium_free Boolean  @default(true)
+  early_adopter_count Int   @default(0)
+  max_early_adopters  Int   @default(100)
+  updated_at      DateTime @updatedAt
+}
+
+// ============================================
+// COMMUNITY (ASK) — Phase 4
+// Anonymous Reddit-style text-only posts
+// ============================================
+
+model CommunityPost {
+  id              String    @id @default(cuid())
+  user_id         String
+  content         String
+  category        String    // "SFW" | "NSFW"
+  region_tag      String?
+  upvotes_count   Int       @default(0)
+  comments_count  Int       @default(0)
+  is_deleted      Boolean   @default(false)
+  auto_delete_at  DateTime
+  created_at      DateTime  @default(now())
+
+  author          User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  comments        PostComment[]
+  upvotes         PostUpvote[]
+  reports         PostReport[]
+
+  @@index([user_id])
+  @@index([category])
+  @@index([created_at])
+  @@index([upvotes_count])
+  @@index([auto_delete_at])
+}
+
+model PostComment {
+  id              String    @id @default(cuid())
+  post_id         String
+  user_id         String
+  content         String
+  is_deleted      Boolean   @default(false)
+  auto_delete_at  DateTime
+  created_at      DateTime  @default(now())
+
+  post            CommunityPost @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  author          User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([post_id])
+  @@index([user_id])
+  @@index([created_at])
+  @@index([auto_delete_at])
+}
+
+model PostUpvote {
+  id              String    @id @default(cuid())
+  post_id         String
+  user_id         String
+  created_at      DateTime  @default(now())
+
+  post            CommunityPost @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  voter           User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([post_id, user_id])
+  @@index([post_id])
+  @@index([user_id])
+}
+
+model PostReport {
+  id              String    @id @default(cuid())
+  post_id         String
+  reporter_id     String
+  reason          String    // "Spam" | "Harassment" | "Underage" | "Illegal" | "Other"
+  created_at      DateTime  @default(now())
+
+  post            CommunityPost @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  reporter        User      @relation(fields: [reporter_id], references: [id], onDelete: Cascade)
+
+  @@unique([post_id, reporter_id])
+  @@index([post_id])
+  @@index([reporter_id])
+}
+
+// ============================================
+// NOTIFICATIONS + QUICK STATUS — Phase 5
+// Privacy-first discreet notifications
+// ============================================
+
+model PushSubscription {
+  id          String   @id @default(cuid())
+  user_id     String
+  endpoint    String
+  p256dh      String
+  auth        String
+  device_info String?  // e.g. "Chrome on Android"
+  created_at  DateTime @default(now())
+
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, endpoint])
+  @@index([user_id])
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+  user_id     String
+  type        String   // "message" | "community" | "profile_view" | "profile_save" | "admin_broadcast" | "screenshot"
+  title       String
+  body        String
+  data        String?  // JSON string with extra data (chatId, postId, userId, broadcastId, etc.)
+  is_read     Boolean  @default(false)
+  created_at  DateTime @default(now())
+
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([is_read])
+  @@index([created_at])
+  @@index([type])
+}
+
+model AdminBroadcast {
+  id              String    @id @default(cuid())
+  admin_id        String
+  title           String
+  message         String
+  level           String    @default("info")  // "urgent" | "info"
+  target_region   String?   // null = all regions
+  action_label    String?   // e.g. "Update Now", "Read More"
+  action_url      String?   // e.g. "/settings"
+  scheduled_at    DateTime? // null = send immediately
+  is_sent         Boolean   @default(false)
+  sent_at         DateTime?
+  expires_at      DateTime? // when broadcast is no longer shown
+  created_at      DateTime  @default(now())
+
+  acknowledgements BroadcastAck[]
+
+  @@index([is_sent])
+  @@index([scheduled_at])
+  @@index([level])
+  @@index([target_region])
+  @@index([created_at])
+}
+
+model BroadcastAck {
+  id            String   @id @default(cuid())
+  broadcast_id  String
+  user_id       String
+  acked_at      DateTime @default(now())
+
+  broadcast     AdminBroadcast @relation(fields: [broadcast_id], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([broadcast_id, user_id])
+  @@index([broadcast_id])
+  @@index([user_id])
+}

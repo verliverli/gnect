@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" rx="96" fill="#333333"/>
+  <rect x="72" y="56" width="368" height="96" rx="16" fill="#4a4a4a"/>
+  <text x="400" y="132" font-family="system-ui, sans-serif" font-size="64" fill="#ffffff" text-anchor="end">0</text>
+  <rect x="72" y="192" width="72" height="72" rx="12" fill="#505050"/>
+  <text x="108" y="242" font-family="system-ui, sans-serif" font-size="36" fill="#ffffff" text-anchor="middle">C</text>
+  <rect x="160" y="192" width="72" height="72" rx="12" fill="#505050"/>
+  <text x="196" y="242" font-family="system-ui, sans-serif" font-size="36" fill="#ffffff" text-anchor="middle">±</text>
+  <rect x="248" y="192" width="72" height="72" rx="12" fill="#505050"/>
+  <text x="284" y="242" font-family="system-ui, sans-serif" font-size="36" fill="#ffffff" text-anchor="middle">%</text>
+  <rect x="336" y="192" width="72" height="72" rx="12" fill="#e67e22"/>
+  <text x="372" y="242" font-family="system-ui, sans-serif" font-size="36" fill="#ffffff" text-anchor="middle">÷</text>
+  <rect x="72" y="280" width="72" height="72" rx="12" fill="#606060"/>
+  <text x="108" y="330" font-family="system-ui, sans-serif" font-size="36" fill="#ffffff" text-anchor="middle">7</text>
+  <rect x="160" y="280" width="72" height="72" rx="12" fill="#606060"/>
+  <text x="196" y="330" font-family="system-ui, sans-serif" font-size="36" fill="#ffffff" text-anchor="middle">8</text>
+  <rect x="248" y="280" width="72" height="72" rx="12" fill="#606060"/>
+  <text x="284" y="330" font-family="system-ui, sans-serif" font-size="36" fill="#ffffff" text-anchor="middle">9</text>
+  <rect x="336" y="280" width="72" height="72" rx="12" fill="#e67e22"/>
+  <text x="372" y="330" font-family="system-ui, sans-serif" font-size="36" fill="#ffffff" text-anchor="middle">×</text>
+  <rect x="72" y="368" width="72" height="72" rx="12" fill="#606060"/>
+  <text x="108" y="418" font-family="system-ui, sans-serif" font-size="36" fill="#ffffff" text-anchor="middle">4</text>
+  <rect x="160" y="368" width="72" height="72" rx="12" fill="#606060"/>
+  <text x="196" y="418" font-family="system-ui, sans-serif" font-size="36" fill="#ffffff" text-anchor="middle">5</text>
+  <rect x="248" y="368" width="72" height="72" rx="12" fill="#606060"/>
+  <text x="284" y="418" font-family="system-ui, sans-serif" font-size="36" fill="#ffffff" text-anchor="middle">6</text>
+  <rect x="336" y="368" width="72" height="72" rx="12" fill="#e67e22"/>
+  <text x="372" y="418" font-family="system-ui, sans-serif" font-size="36" fill="#ffffff" text-anchor="middle">−</text>
+  <rect x="72" y="456" width="72" height="56" rx="12" fill="#606060"/>
+  <text x="108" y="498" font-family="system-ui, sans-serif" font-size="36" fill="#ffffff" text-anchor="middle">1</text>
+  <rect x="160" y="456" width="72" height="56" rx="12" fill="#606060"/>
+  <text x="196" y="498" font-family="system-ui, sans-serif" font-size="36" fill="#ffffff" text-anchor="middle">2</text>
+  <rect x="248" y="456" width="72" height="56" rx="12" fill="#606060"/>
+  <text x="284" y="498" font-family="system-ui, sans-serif" font-size="36" fill="#ffffff" text-anchor="middle">3</text>
+  <rect x="336" y="456" width="72" height="56" rx="12" fill="#e67e22"/>
+  <text x="372" y="498" font-family="system-ui, sans-serif" font-size="36" fill="#ffffff" text-anchor="middle">+</text>
+</svg>
