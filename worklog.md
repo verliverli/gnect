@@ -38,11 +38,11 @@
 | 3 | View-once photos | Two options: 5 seconds and 10 seconds |
 | 4 | Role change (free users) | Once per 60 days |
 | 5 | Into/Identity tags | FULL list including "Can Host", "Looking for Place" |
-| 6 | Phase order | 11 phases (0-10), Video Feed is Phase 8 (before Legal+Launch), Premium is POST-DEPLOYMENT (Phase 10) |
+| 6 | Phase order | 10 phases (0-9), Video Feed is Phase 7 (before Legal+Launch), Admin Panel is Phase 9 (before monetization), Premium is POST-DEPLOYMENT |
 | 7 | Brand name | GNECT — final |
 | 8 | Admin access | Stealth admin — same login page, special credentials unlock full admin panel |
 | 9 | Admin profile | Admin has NO role, NO profile sections. Only name + BOSS badge. Admin is there for work, not hookup. |
-| 10 | Premium timing | ALL features FREE at launch. Premium monetization is POST-DEPLOYMENT (Phase 10 — after launch + getting users). We deploy, get users, THEN add premium. No premium gating until then. |
+| 10 | Premium timing | ALL features FREE at launch. Premium monetization is POST-DEPLOYMENT (after launch + getting users, no phase number — built when we have active users). We deploy, get users, THEN add premium. No premium gating until then. |
 | 11 | Auto-delete | ALL auto-delete timers changed: hard limit is 7 days (was 14). Community posts: 7 days. Status: 24h. Chat text: 7 days. |
 | 12 | Community (Ask) | Anonymous text-only Reddit-style posts. SFW/NSFW categories. Upvotes. 5 posts/day. Auto-delete 7 days. 2000 chars per post. |
 | 13 | Quick Status | Text-only status on profile. Max 100 chars. Cute gradient backgrounds. Auto-delete 24h. 1 status at a time. |
@@ -52,7 +52,7 @@
 | 17 | Cucumber size | Optional profile field. User chooses to show or not. For... research purposes 😂🥒 |
 | 18 | Video Feed | TikTok-style vertical scroll, VIEW ONLY (no likes/comments/sharing), adult site APIs, VPN required, 3 categories: Gays / Trans Woman / Trans Man |
 | 19 | Video hosting | NO video hosting — all content from adult APIs. Zero storage. Zero moderation for video. |
-| 20 | Community anonymity | user_id stored in DB for rate limiting + My Posts tab + moderation. Display shows "Anonymous" — NO nickname, NO avatar. "You" badge shown only to post author. Admin can see who posted (Phase 7). |
+| 20 | Community anonymity | user_id stored in DB for rate limiting + My Posts tab + moderation. Display shows "Anonymous" — NO nickname, NO avatar. "You" badge shown only to post author. Admin can see who posted (Phase 9). |
 
 ---
 
@@ -194,7 +194,7 @@
 
 ---
 
-## 11-PHASE BUILD PLAN
+## 10-PHASE BUILD PLAN
 
 ### Phase 0: Foundation ✅
 - Prisma schema + SQLite database
@@ -322,16 +322,7 @@
 - Link Blocking: URLs blocked in chat, posts, comments — frontend + backend + chat service
 - Privacy & Safety Guide: comprehensive help panel with 7 sections explaining every feature and how to access it (header ❓ icon + Profile → Privacy → guide button)
 
-### Phase 7: Admin Panel ⏳
-- Dashboard: total users, active today, new this week, chats, reports, community posts
-- User management: search, view profiles, ban/unban, toggle premium
-- Report viewer: pending reports, dismiss/warn/ban actions
-- Uncancellable broadcast manager: create, delete, view acknowledgements, target all or region
-- Community moderation: view reported posts, delete, ban from posting, pin/unpin
-- App settings: toggle is_premium_free, early adopter count, rate limit stats
-- Stealth access from profile panel (BOSS MODE section only)
-
-### Phase 8: Video Feed 🔥
+### Phase 7: Video Feed 🔥
 - TikTok-style vertical scroll — full-screen video player, swipe up for next
 - **View ONLY** — no likes, no comments, no bookmarks, no sharing. Pure watch + scroll.
 - **No hosting** — pull videos from adult site APIs (no storage, no bandwidth cost, no CDN needed)
@@ -346,7 +337,7 @@
 - Placeholder/thumbnail loading while video buffers
 - "VPN Required" banner if user's region can't reach the API
 
-### Phase 9: Legal + PWA + Launch ⏳
+### Phase 8: Legal + PWA + Launch ⏳
 - Terms of Service page
 - Privacy Policy page
 - Age verification disclaimer
@@ -357,7 +348,16 @@
 - Delete account flow (30-day grace period)
 - **DEPLOY with ALL features FREE (Freemium Test Version)**
 
-### Phase 10: Premium Monetization 🔒 POST-DEPLOYMENT
+### Phase 9: Admin Panel ⏳
+- Dashboard: total users, active today, new this week, chats, reports, community posts
+- User management: search, view profiles, ban/unban, toggle premium
+- Report viewer: pending reports, dismiss/warn/ban actions
+- Uncancellable broadcast manager: create, delete, view acknowledgements, target all or region
+- Community moderation: view reported posts, delete, ban from posting, pin/unpin
+- App settings: toggle is_premium_free, early adopter count, rate limit stats
+- Stealth access from profile panel (BOSS MODE section only)
+
+### Premium Monetization 🔒 POST-DEPLOYMENT
 > ⚠️ **DO NOT BUILD THIS PHASE UNTIL: app is deployed, live, and we have active users.**
 
 - Free tier: 5 chats/week, 2 profile photos, blurred face pics, region-only
